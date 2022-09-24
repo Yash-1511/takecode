@@ -133,7 +133,7 @@ exports.authenticate = async (req, res) => {
 exports.listUsers = async (req, res, next) => {
   try {
     const { sortType = '-created' } = req.body;
-    const users = await User.find().sort(sortType);
+    const users = await User.find({ role: { $nin: ["moderator"] } } ).sort(sortType);
     res.json(users);
   } catch (error) {
     next(error);
