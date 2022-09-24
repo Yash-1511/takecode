@@ -33,6 +33,12 @@ const answerAuth = require('./middlewares/answerAuth');
 
 const router = require('express').Router();
 
+router.get('/hello',(req,res)=>{
+  res
+  .status(200)
+  .send('Hello server is running')
+  .end();
+})
 //authentication
 router.post('/signup', validateUser, signup);
 router.post('/authenticate', validateUser, authenticate);
