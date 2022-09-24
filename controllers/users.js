@@ -3,6 +3,7 @@ const jwtDecode = require('jwt-decode');
 const { body, validationResult } = require('express-validator');
 
 const { createToken, hashPassword, verifyPassword } = require('../utils/authentication');
+const mailgun = require("../utils/mailgun");
 
 exports.signup = async (req, res) => {
   const result = validationResult(req);
@@ -12,12 +13,13 @@ exports.signup = async (req, res) => {
   }
 
   try {
-    const { username } = req.body;
+    const { username, email } = req.body;
 
     const hashedPassword = await hashPassword(req.body.password);
 
     const userData = {
       username: username.toLowerCase(),
+      email: email,
       password: hashedPassword
     };
 
@@ -30,18 +32,33 @@ exports.signup = async (req, res) => {
         message: 'Username already exists.'
       });
     }
+    const existingEmail = await User.findOne({
+      email: userData.email
+    });
 
+    if (existingEmail) {
+      return res.status(400).json({
+        message: 'Email already exists.'
+      });
+    }
     const newUser = new User(userData);
     const savedUser = await newUser.save();
-
+    console.log(savedUser.email)
     if (savedUser) {
+      await mailgun.sendEmail(
+        savedUser.email,
+        "signup",
+        null,
+        savedUser
+      );
       const token = createToken(savedUser);
       const decodedToken = jwtDecode(token);
       const expiresAt = decodedToken.exp;
 
-      const { username, role, id, created, profilePhoto } = savedUser;
+      const { username, email, role, id, created, profilePhoto } = savedUser;
       const userInfo = {
         username,
+        email,
         role,
         id,
         created,
@@ -60,6 +77,7 @@ exports.signup = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error)
     return res.status(400).json({
       message: 'There was a problem creating your account.'
     });
@@ -105,6 +123,7 @@ exports.authenticate = async (req, res) => {
       });
     }
   } catch (error) {
+    console.log(error)
     return res.status(400).json({
       message: 'Something went wrong.'
     });
@@ -140,6 +159,44 @@ exports.find = async (req, res, next) => {
 };
 
 exports.validateUser = [
+  body('username')
+    .exists()
+    .trim()
+    .withMessage('is required')
+
+    .notEmpty()
+    .withMessage('cannot be blank')
+
+    .isLength({ max: 16 })
+    .withMessage('must be at most 16 characters long')
+
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('contains invalid characters'),
+
+  body('email')
+    .exists()
+    .trim()
+    .withMessage('is required')
+
+    .notEmpty()
+    .withMessage('cannot be blank'),
+
+  body('password')
+    .exists()
+    .trim()
+    .withMessage('is required')
+
+    .notEmpty()
+    .withMessage('cannot be blank')
+
+    .isLength({ min: 6 })
+    .withMessage('must be at least 6 characters long')
+
+    .isLength({ max: 50 })
+    .withMessage('must be at most 50 characters long')
+];
+
+exports.validateLoginUser = [
   body('username')
     .exists()
     .trim()

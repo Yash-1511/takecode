@@ -1,6 +1,7 @@
 const Question = require('../models/question');
 const User = require('../models/user');
 const { body, validationResult } = require('express-validator');
+const mailgun = require('../utils/mailgun');
 
 exports.loadQuestions = async (req, res, next, id) => {
   try {
@@ -22,6 +23,7 @@ exports.createQuestion = async (req, res, next) => {
     return res.status(422).json({ errors });
   }
   try {
+    // const user = User.findById(req.user.id);
     const { title, tags, text } = req.body;
     const author = req.user.id;
     const question = await Question.create({
@@ -30,6 +32,7 @@ exports.createQuestion = async (req, res, next) => {
       tags,
       text
     });
+    await mailgun.sendEmail(req.user.email, 'question-posted');
     res.status(201).json(question);
   } catch (error) {
     next(error);
@@ -103,6 +106,51 @@ exports.loadComment = async (req, res, next, id) => {
   next();
 };
 
+exports.approveQuestion = async(req,res,next)=>{
+  try{
+    const queId = req.params.id;
+    const query = { _id: queId };
+    const update = {
+      status: 'Approved',
+    };
+    const questionDoc = await Question.findOneAndUpdate(query, update, {
+      new: true
+    });
+
+    // await mailgun.sendEmail(req.user.email, 'merchant-welcome', null, name);
+    res.status(200).json({
+      success: true
+    });
+  }
+  catch(error){
+    res.status(400).json({
+      error: 'Your request could not be processed. Please try again.'
+    });
+  }
+}
+
+exports.rejectQuestion = async(req,res,next)=>{
+  try{
+    const queId = req.params.id;
+    const query = { _id: queId };
+    const update = {
+      status: 'Rejected',
+    };
+    const questionDoc = await Question.findOneAndUpdate(query, update, {
+      new: true
+    });
+
+    // await mailgun.sendEmail(req.user.email, 'merchant-welcome', null, name);
+    res.status(200).json({
+      success: true
+    });
+  }
+  catch(error){
+    res.status(400).json({
+      error: 'Your request could not be processed. Please try again.'
+    });
+  }
+}
 exports.questionValidate = [
   body('title')
     .exists()

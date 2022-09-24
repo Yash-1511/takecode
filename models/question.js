@@ -19,7 +19,12 @@ const questionSchema = new Schema({
   comments: [commentSchema],
   answers: [answerSchema],
   created: { type: Date, default: Date.now },
-  views: { type: Number, default: 0 }
+  views: { type: Number, default: 0 },
+  status: {
+    type: String,
+    default: 'Waiting Approval',
+    enum: ['Waiting Approval', 'Rejected', 'Approved']
+  },
 });
 
 questionSchema.set('toJSON', { getters: true });
