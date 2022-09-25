@@ -1,5 +1,5 @@
 module.exports = {
-  port: process.env.PORT || 8080,
+  port: process.env.PORT || 8000,
   db: {
     prod: process.env.DATABASE_URL || 'mongodb+srv://admin:techforum@techforum.et98x9p.mongodb.net/?retryWrites=true&w=majority',
     test: 'mongodb+srv://admin:techforum@techforum.et98x9p.mongodb.net/?retryWrites=true&w=majority',

@@ -14,12 +14,7 @@ const answerSchema = new Schema({
   text: { type: String, required: true },
   score: { type: Number, default: 0 },
   votes: [voteSchema],
-  comments: [commentSchema],
-  status: {
-    type: String,
-    default: 'Waiting Approval',
-    enum: ['Waiting Approval', 'Rejected', 'Approved']
-  },
+  comments: [commentSchema]
 });
 
 answerSchema.set('toJSON', { getters: true });
@@ -57,7 +52,7 @@ answerSchema.methods = {
     if (!comment) throw new Error('Comment not found');
     comment.remove();
     return this;
-  },
+  }
 };
 
 module.exports = answerSchema;
