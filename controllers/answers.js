@@ -41,6 +41,16 @@ exports.removeAnswer = async (req, res, next) => {
   }
 };
 
+exports.approveAnswer = async (req, res, next) => {
+  try {
+    const { answer } = req.params;
+    const ans = await req.question.updateAnswer(answer);
+    return res.status(200).json({
+      message: 'successfull'
+    });
+  } catch (error) {}
+};
+
 exports.answerValidate = [
   body('text')
     .exists()

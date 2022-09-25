@@ -4,7 +4,8 @@ const {
   loadAnswers,
   answerValidate,
   createAnswer,
-  removeAnswer
+  removeAnswer,
+  approveAnswer
 } = require('../controllers/answers');
 const requireAuth = require('../middlewares/requireAuth');
 
@@ -12,5 +13,5 @@ const requireAuth = require('../middlewares/requireAuth');
 router.param('answer', loadAnswers);
 router.post('/answer/:question', [requireAuth, answerValidate], createAnswer);
 router.delete('/answer/:question/:answer', [requireAuth, answerAuth], removeAnswer);
-
+// router.put("/answer/:question/:id",[requireAuth,answerAuth],approveAnswer);
 module.exports = router;

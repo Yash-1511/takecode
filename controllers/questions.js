@@ -2,6 +2,7 @@ const Question = require('../models/question');
 const User = require('../models/user');
 const { body, validationResult } = require('express-validator');
 const mailgun = require('../utils/mailgun');
+const { s3Upload } = require('../utils/storage');
 
 exports.loadQuestions = async (req, res, next, id) => {
   try {
@@ -25,13 +26,20 @@ exports.createQuestion = async (req, res, next) => {
   try {
     // const user = User.findById(req.user.id);
     const { title, tags, text } = req.body;
+    // const image = req.files.image;
     const author = req.user.id;
+
+    // const { imageUrl, imageKey } = await s3Upload(image);
     const question = await Question.create({
       title,
       author,
       tags,
-      text
+      text,
+      imageUrl,
+      imageKey
     });
+
+    
     await mailgun.sendEmail(req.user.email, 'question-posted');
     res.status(201).json(question);
   } catch (error) {
